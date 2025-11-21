@@ -505,7 +505,13 @@ const SendNotificationModal: React.FC<{
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                      <label className="block text-sm font-medium mb-2">Người nhận</label>
-                     <input type="text" value={recipient} onChange={e => setRecipient(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-700 border border-light-border dark:border-dark-border rounded-lg px-4 py-2 text-light-text-muted dark:text-dark-text-muted cursor-not-allowed" readOnly />
+                     <input 
+                        type="text" 
+                        value={recipient} 
+                        onChange={e => setRecipient(e.target.value)} 
+                        className="w-full bg-light-bg-main dark:bg-dark-bg-main border border-light-border dark:border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-blue" 
+                        placeholder="Nhập tên người nhận hoặc lớp..."
+                     />
                 </div>
                 <div>
                     <label className="block text-sm font-medium mb-2">Mẫu thông báo</label>
@@ -1038,7 +1044,7 @@ const NotificationHistoryPage: React.FC<{
             <p className="text-light-text-muted dark:text-dark-text-muted mb-6">Theo dõi trạng thái và lịch sử các thông báo đã gửi.</p>
 
             {/* Filters Toolbar */}
-            <div className="flex flex-wrap gap-4 mb-6 bg-light-bg-card dark:bg-dark-bg-card p-4 rounded-lg shadow-sm">
+            <div className="flex flex-wrap gap-4 mb-6 bg-light-bg-card dark:bg-dark-bg-card p-4 rounded-lg shadow-sm items-center">
                 <div className="relative flex-grow min-w-[200px]">
                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-light-text-muted dark:text-dark-text-muted" />
                     <input 
@@ -1080,6 +1086,12 @@ const NotificationHistoryPage: React.FC<{
                     className="px-4 py-2 text-sm text-light-text-muted dark:text-dark-text-muted hover:text-primary-blue"
                 >
                     Xóa bộ lọc
+                </button>
+                <button 
+                    onClick={() => onOpenSendModal({})}
+                    className="bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-primary-blue-hover flex items-center ml-auto"
+                >
+                    <PlusIcon className="w-5 h-5 mr-2" /> Gửi tin mới
                 </button>
             </div>
 
@@ -1247,7 +1259,10 @@ const AddEditStudentForm: React.FC<{
 };
 
 
-const StudentManagementPage: React.FC<{ onOpenSendModal: (data: Partial<NotificationLog>) => void }> = ({ onOpenSendModal }) => {
+const StudentManagementPage: React.FC<{ 
+    onOpenSendModal: (data: Partial<NotificationLog>) => void;
+    notifications: NotificationLog[]; 
+}> = ({ onOpenSendModal, notifications }) => {
     const ITEMS_PER_PAGE = 5;
     const [students, setStudents] = useState<Student[]>(initialStudents);
     const [searchTerm, setSearchTerm] = useState('');
@@ -1315,6 +1330,10 @@ const StudentManagementPage: React.FC<{ onOpenSendModal: (data: Partial<Notifica
       setModalState({ ...modalState, add: false, edit: false, selected: null });
     }
 
+    const studentNotifications = modalState.selected 
+        ? notifications.filter(n => n.recipient === modalState.selected?.name) 
+        : [];
+
     return (
         <div>
             <h1 className="text-3xl font-bold mb-2">Quản lý Học viên</h1>
@@ -1332,15 +1351,42 @@ const StudentManagementPage: React.FC<{ onOpenSendModal: (data: Partial<Notifica
             {/* VIEW MODAL */}
             <Modal isOpen={modalState.view} onClose={() => setModalState({...modalState, view: false, selected: null})} title="Thông tin Học viên">
                 {modalState.selected && (
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
-                        <img src={modalState.selected.avatar} alt={modalState.selected.name} className="w-24 h-24 rounded-full object-cover" />
-                        <div className="space-y-2 text-sm text-center sm:text-left">
-                            <p><strong className="w-32 inline-block">Mã Học Viên:</strong> {modalState.selected.id}</p>
-                            <p><strong className="w-32 inline-block">Họ và Tên:</strong> {modalState.selected.name}</p>
-                            <p><strong className="w-32 inline-block">Khóa học:</strong> {modalState.selected.course}</p>
-                            <p><strong className="w-32 inline-block">Điểm TB:</strong> {modalState.selected.avgScore}</p>
-                            <p><strong className="w-32 inline-block">Ngày Đăng Ký:</strong> {modalState.selected.enrollDate}</p>
-                            <p><strong className="w-32 inline-block">Trạng thái:</strong> <StatusBadge status={modalState.selected.status} /></p>
+                    <div className="space-y-6">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+                            <img src={modalState.selected.avatar} alt={modalState.selected.name} className="w-24 h-24 rounded-full object-cover" />
+                            <div className="space-y-2 text-sm text-center sm:text-left">
+                                <p><strong className="w-32 inline-block">Mã Học Viên:</strong> {modalState.selected.id}</p>
+                                <p><strong className="w-32 inline-block">Họ và Tên:</strong> {modalState.selected.name}</p>
+                                <p><strong className="w-32 inline-block">Khóa học:</strong> {modalState.selected.course}</p>
+                                <p><strong className="w-32 inline-block">Điểm TB:</strong> {modalState.selected.avgScore}</p>
+                                <p><strong className="w-32 inline-block">Ngày Đăng Ký:</strong> {modalState.selected.enrollDate}</p>
+                                <p><strong className="w-32 inline-block">Trạng thái:</strong> <StatusBadge status={modalState.selected.status} /></p>
+                            </div>
+                        </div>
+                        
+                        <div className="border-t border-light-border dark:border-dark-border pt-4">
+                             <h4 className="font-semibold mb-3 flex items-center"><MessageCircleIcon className="w-4 h-4 mr-2"/> Lịch sử tin nhắn</h4>
+                             {studentNotifications.length > 0 ? (
+                                 <div className="space-y-2 max-h-60 overflow-y-auto">
+                                     {studentNotifications.map(n => (
+                                         <div key={n.id} className="p-3 bg-light-bg-nav dark:bg-dark-bg-nav rounded-lg text-sm">
+                                             <div className="flex justify-between items-start">
+                                                 <span className="font-medium">{n.title}</span>
+                                                 <span className="text-xs text-light-text-muted dark:text-dark-text-muted">{n.sentTime}</span>
+                                             </div>
+                                             <p className="text-light-text-muted dark:text-dark-text-muted text-xs mt-1">{n.message}</p>
+                                             <div className="flex justify-between items-center mt-2">
+                                                 <div className="flex space-x-1">
+                                                    {n.channels.map(c => <span key={c} className="text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-gray-600 rounded">{c}</span>)}
+                                                 </div>
+                                                 <StatusBadge status={n.status} />
+                                             </div>
+                                         </div>
+                                     ))}
+                                 </div>
+                             ) : (
+                                 <p className="text-sm text-light-text-muted dark:text-dark-text-muted italic text-center py-2">Chưa có tin nhắn nào được gửi cho học viên này.</p>
+                             )}
                         </div>
                     </div>
                 )}
@@ -3083,7 +3129,7 @@ const App: React.FC = () => {
             case 'NotificationManagement': return <NotificationTemplatesPage templates={templates} setTemplates={setTemplates} notifications={notifications} />; // Reusing for demo
             case 'NotificationTemplates': return <NotificationTemplatesPage templates={templates} setTemplates={setTemplates} notifications={notifications} />;
             case 'NotificationHistory': return <NotificationHistoryPage notifications={notifications} onOpenSendModal={openSendModal} />;
-            case 'StudentManagement': return <StudentManagementPage onOpenSendModal={openSendModal} />;
+            case 'StudentManagement': return <StudentManagementPage onOpenSendModal={openSendModal} notifications={notifications} />;
             case 'InstructorManagement': return <InstructorManagementPage />;
             case 'CourseManagement': return <CourseManagementPage onOpenSendModal={openSendModal} />;
             case 'FinancialManagement': return <FinancialManagementPage onOpenSendModal={openSendModal} />;
